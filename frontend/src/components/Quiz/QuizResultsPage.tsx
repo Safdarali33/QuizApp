@@ -1,10 +1,32 @@
 import React from 'react';
-import { useRoute, Link } from 'wouter';
+import { useRoute, Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { quizAPI } from '../../services/api';
 
+interface QuizResults {
+  score: number;
+  totalPoints: number;
+  percentage: number;
+  results: Array<{
+    questionId: string;
+    questionText: string;
+    type: string;
+    userAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    points: number;
+  }>;
+}
+
 export const QuizResultsPage: React.FC = () => {
   const [match, params] = useRoute('/quiz/:id/results');
+  const [location] = useLocation();
+  
+  // Try to get results from location state first (if navigated from quiz)
+  const locationState = useLocation()[1] as any; // Get navigation state
+  const resultsFromState = locationState?.state?.results as QuizResults;
+
+  // If no results in state, try to get from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const score = urlParams.get('score');
   const totalPoints = urlParams.get('total');
@@ -29,9 +51,10 @@ export const QuizResultsPage: React.FC = () => {
     );
   }
 
-  const numericScore = score ? parseInt(score) : 0;
-  const numericTotal = totalPoints ? parseInt(totalPoints) : 0;
-  const numericPercentage = percentage ? parseInt(percentage) : 0;
+  // Use results from state if available, otherwise from URL params
+  const numericScore = resultsFromState?.score || (score ? parseInt(score) : 0);
+  const numericTotal = resultsFromState?.totalPoints || (totalPoints ? parseInt(totalPoints) : 0);
+  const numericPercentage = resultsFromState?.percentage || (percentage ? parseInt(percentage) : 0);
 
   const getResultColor = () => {
     if (numericPercentage >= 80) return 'text-green-600 bg-green-100';
