@@ -52,17 +52,21 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-
-// 🔥 FIX FOR EXPRESS v5 — serve frontend
 const __dirnamePath = path.resolve();
 
+// Serve static files from frontend/dist
 app.use(express.static(path.join(__dirnamePath, 'frontend', 'dist')));
 
-app.get('*', (req, res) => {
+// 🔥 FIX: Handle all non-API routes including quiz results pages
+app.get('*', (req, res, next) => {
+  // If it's an API route, skip and continue to next middleware
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  
+  // Serve the frontend for all other routes (including /quiz/* routes)
   res.sendFile(path.join(__dirnamePath, 'frontend', 'dist', 'index.html'));
 });
-
-
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI!)
