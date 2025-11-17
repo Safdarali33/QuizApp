@@ -37,12 +37,13 @@ router.post('/register', async (req, res) => {
     );
 
     // Set cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
+    r// In both login and register routes, update the cookie config:
+res.cookie('token', token, {
+  httpOnly: true,
+  secure: true, // Must be true for HTTPS and sameSite: 'none'
+  sameSite: 'none', // Changed from 'strict' to 'none' for cross-origin
+  maxAge: 24 * 60 * 60 * 1000
+});
 
     res.status(201).json({
       message: 'Admin registered successfully',
@@ -87,12 +88,13 @@ router.post('/login', async (req, res) => {
     );
 
     // Set cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000
-    });
+    // In both login and register routes, update the cookie config:
+res.cookie('token', token, {
+  httpOnly: true,
+  secure: true, // Must be true for HTTPS and sameSite: 'none'
+  sameSite: 'none', // Changed from 'strict' to 'none' for cross-origin
+  maxAge: 24 * 60 * 60 * 1000
+});
 
     res.json({
       message: 'Login successful',

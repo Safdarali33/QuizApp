@@ -12,23 +12,14 @@ dotenv.config();
 
 const app = express();
 
-// Middleware - Fix CORS configuration
-
-// Option A: Specific origin
-app.use(cors({
-  origin: 'https://quizapp-1-u5rj.onrender.com',
-  credentials: true
-}));
-
-// Option B: Multiple origins
+// Remove the first CORS configuration and keep this one:
 const allowedOrigins = [
   'https://quizapp-1-u5rj.onrender.com',
-  'http://localhost:3000' // for local development
+  'http://localhost:3000'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
