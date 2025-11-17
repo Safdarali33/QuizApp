@@ -22,13 +22,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
       console.log('🚫 CORS blocked for origin:', origin);
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+      return callback(new Error('CORS Blocked'), false);
     }
     
     console.log('✅ CORS allowed for origin:', origin);
@@ -55,15 +53,14 @@ app.get('/api/health', (req, res) => {
 });
 
 
-// ✅ ✅ IMPORTANT — SERVE FRONTEND BUILD (Fix for 404 on React routes)
+// 🔥 FIX FOR EXPRESS v5 — serve frontend
 const __dirnamePath = path.resolve();
 
 app.use(express.static(path.join(__dirnamePath, 'frontend', 'dist')));
 
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirnamePath, 'frontend', 'dist', 'index.html'));
 });
-// ✅ END FIX
 
 
 // Database connection
@@ -71,7 +68,6 @@ mongoose.connect(process.env.MONGODB_URI!)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => {
     console.error('❌ MongoDB connection error:', err);
-    console.log('Retrying connection in 5 seconds...');
     setTimeout(() => {
       mongoose.connect(process.env.MONGODB_URI!);
     }, 5000);
