@@ -28,11 +28,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const checkAuth = async () => {
     try {
-      const response = await authAPI.getMe();
-      setAdmin(response.data.admin);
-      console.log('✅ Auth check successful:', response.data.admin);
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const response = await authAPI.getMe();
+        setAdmin(response.data.admin);
+        console.log('✅ Auth check successful:', response.data.admin);
+      } else {
+        setAdmin(null);
+      }
     } catch (error: any) {
       console.log('❌ Not authenticated:', error.response?.data?.error || error.message);
+      localStorage.removeItem('auth_token');
       setAdmin(null);
     } finally {
       setLoading(false);
@@ -43,8 +49,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       const response = await authAPI.login(email, password);
-      setAdmin(response.data.admin);
-      console.log('✅ Login successful:', response.data.admin);
+      const { admin, token } = response.data;
+      
+      // Store the token
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+      
+      setAdmin(admin);
+      console.log('✅ Login successful:', admin);
     } catch (error: any) {
       console.error('❌ Login failed:', error.response?.data?.error || error.message);
       throw error;
@@ -57,8 +70,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       const response = await authAPI.register(name, email, password);
-      setAdmin(response.data.admin);
-      console.log('✅ Registration successful:', response.data.admin);
+      const { admin, token } = response.data;
+      
+      // Store the token
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+      
+      setAdmin(admin);
+      console.log('✅ Registration successful:', admin);
     } catch (error: any) {
       console.error('❌ Registration failed:', error.response?.data?.error || error.message);
       throw error;
@@ -70,12 +90,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     setLoading(true);
     try {
-      await authAPI.logout();
+      localStorage.removeItem('auth_token');
       setAdmin(null);
       console.log('✅ Logout successful');
     } catch (error: any) {
-      console.error('❌ Logout failed:', error.response?.data?.error || error.message);
-      // Still clear admin state even if logout API fails
+      console.error('❌ Logout failed:', error);
+      localStorage.removeItem('auth_token');
       setAdmin(null);
     } finally {
       setLoading(false);

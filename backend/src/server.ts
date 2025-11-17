@@ -12,23 +12,29 @@ dotenv.config();
 
 const app = express();
 
-// Remove the first CORS configuration and keep this one:
+// CORS configuration
 const allowedOrigins = [
   'https://quizapp-1-u5rj.onrender.com',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'http://localhost:5173'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('🚫 CORS blocked for origin:', origin);
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
+    
+    console.log('✅ CORS allowed for origin:', origin);
     return callback(null, true);
   },
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['set-cookie']
 }));
 
 app.use(express.json());
@@ -61,5 +67,5 @@ mongoose.connect(process.env.MONGODB_URI!)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 CORS enabled for: localhost:3000, localhost:5173`);
+  console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
 });

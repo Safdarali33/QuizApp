@@ -1,10 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://quizapp-j7bk.onrender.com/api';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,
+  // Remove withCredentials since we're using tokens
+});
+
+// Add token to requests automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // Auth API
@@ -15,12 +24,15 @@ export const authAPI = {
   register: (name: string, email: string, password: string) =>
     api.post('/auth/register', { name, email, password }),
   
-  logout: () => api.post('/auth/logout'),
+  logout: () => {
+    localStorage.removeItem('auth_token');
+    return Promise.resolve(); // No need for backend call if using tokens
+  },
   
   getMe: () => api.get('/auth/me'),
 };
 
-// Quiz API
+// Quiz API (no changes needed)
 export const quizAPI = {
   getAll: () => api.get('/quizzes'),
   getById: (id: string) => api.get(`/quizzes/${id}`),
